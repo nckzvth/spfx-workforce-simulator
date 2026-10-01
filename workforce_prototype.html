@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workforce Intelligence & People Analytics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-slate-800 p-6 md:p-10">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Top Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between border-b pb-5 border-slate-200 gap-4">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="bg-[#0078D4] text-white text-xs px-2.5 py-0.5 rounded font-semibold tracking-wide">WORKFORCE TECH</span>
+          <h1 class="text-2xl font-bold text-slate-900">Workforce Intelligence & People Analytics</h1>
+        </div>
+        <p class="text-sm text-slate-500 mt-1">Workforce Transformation Test Hub</p>
+      </div>
+      <div class="flex items-center space-x-3">
+        <label for="deptFilter" class="text-xs font-bold text-slate-500 uppercase tracking-wider">Department:</label>
+        <select id="deptFilter" onchange="updateDashboard()" class="bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm focus:ring-2 focus:ring-[#0078D4] focus:border-[#0078D4] outline-none cursor-pointer">
+          <option value="All">All Departments</option>
+          <option value="Engineering">Engineering</option>
+          <option value="Sales">Sales</option>
+          <option value="Operations">Operations</option>
+          <option value="HR">Human Resources</option>
+        </select>
+        <button onclick="alert('Exporting Workforce Transformation Summary Report (PDF/Excel)...')" class="bg-[#0078D4] hover:bg-[#005A9E] text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center space-x-1.5">
+          <span>Export View</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm transition hover:shadow-md">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Headcount</p>
+        <h3 id="kpiHeadcount" class="text-3xl font-extrabold text-slate-900 mt-2">1,420</h3>
+        <p id="kpiHeadcountSub" class="text-xs text-emerald-600 font-semibold mt-1.5 flex items-center">
+          ↑ +4.2% from last quarter
+        </p>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm transition hover:shadow-md">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Annualized Attrition</p>
+        <h3 id="kpiAttrition" class="text-3xl font-extrabold text-slate-900 mt-2">8.4%</h3>
+        <p id="kpiAttritionSub" class="text-xs text-emerald-600 font-semibold mt-1.5 flex items-center">
+          ↓ -1.1% vs benchmark
+        </p>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm transition hover:shadow-md">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Open Requisitions</p>
+        <h3 id="kpiReqs" class="text-3xl font-extrabold text-slate-900 mt-2">46</h3>
+        <p id="kpiReqsSub" class="text-xs text-slate-500 font-medium mt-1.5">Avg 32 days to fill</p>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm transition hover:shadow-md">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Offer Acceptance</p>
+        <h3 id="kpiOffers" class="text-3xl font-extrabold text-slate-900 mt-2">89.2%</h3>
+        <p id="kpiOffersSub" class="text-xs text-emerald-600 font-semibold mt-1.5 flex items-center">
+          ↑ +3.4% MoM
+        </p>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Trend Area Chart -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h4 class="text-base font-bold text-slate-900" id="trendTitle">Headcount Trend (12 Months)</h4>
+            <p class="text-xs text-slate-500">Historical active workforce counts</p>
+          </div>
+          <span id="activeBadge" class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-[#0078D4] rounded-md border border-blue-100">All Teams</span>
+        </div>
+        <div class="h-64">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Department Distribution Chart -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h4 class="text-base font-bold text-slate-900" id="distTitle">Attrition Rate Breakdown (%)</h4>
+            <p class="text-xs text-slate-500" id="distSubtitle">Annualized turnover by department</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md">Benchmark: 9.5%</span>
+        </div>
+        <div class="h-64">
+          <canvas id="distChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Footer Note -->
+    <div class="text-xs text-slate-400 text-center pt-4">
+      Workforce Transformation Hub • Connected to Microsoft 365 Architecture Preview
+    </div>
+
+  </div>
+
+  <script>
+    // Dataset dictionary for interactive filtering
+    const dataByDept = {
+      All: {
+        kpi: { headcount: '1,420', headcountSub: '↑ +4.2% from last quarter', attrition: '8.4%', attritionSub: '↓ -1.1% vs benchmark', reqs: '46', reqsSub: 'Avg 32 days to fill', offers: '89.2%', offersSub: '↑ +3.4% MoM' },
+        trend: [1310, 1325, 1340, 1352, 1370, 1385, 1392, 1405, 1410, 1415, 1418, 1420],
+        trendLabel: 'Total Active Headcount',
+        distLabels: ['Engineering', 'Sales', 'Operations', 'HR', 'Marketing'],
+        distData: [6.2, 11.4, 7.8, 4.1, 8.9],
+        distTitle: 'Attrition Rate Breakdown (%)',
+        distSubtitle: 'Annualized turnover by department'
+      },
+      Engineering: {
+        kpi: { headcount: '420', headcountSub: '↑ +6.5% YTD growth', attrition: '6.2%', attritionSub: '↓ -3.3% below target', reqs: '18', reqsSub: 'Avg 28 days to fill', offers: '93.1%', offersSub: '↑ +4.1% MoM' },
+        trend: [375, 380, 385, 390, 395, 400, 405, 408, 412, 415, 418, 420],
+        trendLabel: 'Engineering Headcount',
+        distLabels: ['Frontend', 'Backend', 'Data & AI', 'DevOps', 'QA/SDET'],
+        distData: [5.4, 6.8, 4.9, 7.2, 6.0],
+        distTitle: 'Engineering Discipline Turnover (%)',
+        distSubtitle: 'Attrition rate by engineering specialization'
+      },
+      Sales: {
+        kpi: { headcount: '310', headcountSub: '↑ +2.1% YTD growth', attrition: '11.4%', attritionSub: '↑ Above 10% threshold', reqs: '14', reqsSub: 'Avg 36 days to fill', offers: '84.5%', offersSub: '↓ -1.2% MoM' },
+        trend: [292, 295, 298, 300, 302, 304, 305, 306, 307, 308, 309, 310],
+        trendLabel: 'Sales Headcount',
+        distLabels: ['Enterprise', 'Mid-Market', 'SMB', 'Sales Ops', 'SDRs'],
+        distData: [9.2, 12.4, 14.1, 7.5, 13.8],
+        distTitle: 'Sales Segment Turnover (%)',
+        distSubtitle: 'Attrition rate across sales tiers'
+      },
+      Operations: {
+        kpi: { headcount: '280', headcountSub: '↑ +3.0% YTD growth', attrition: '7.8%', attritionSub: '↓ Within healthy range', reqs: '8', reqsSub: 'Avg 24 days to fill', offers: '88.0%', offersSub: '↑ +1.5% MoM' },
+        trend: [265, 268, 270, 272, 273, 275, 276, 277, 278, 279, 280, 280],
+        trendLabel: 'Operations Headcount',
+        distLabels: ['Logistics', 'Procurement', 'Facilities', 'Compliance', 'Vendor Mgmt'],
+        distData: [7.2, 8.5, 6.8, 5.9, 8.2],
+        distTitle: 'Operations Turnover Breakdown (%)',
+        distSubtitle: 'Attrition rate by operational functional unit'
+      },
+      HR: {
+        kpi: { headcount: '95', headcountSub: 'Stable headcount', attrition: '4.1%', attritionSub: '↓ Lowest in company', reqs: '3', reqsSub: 'Avg 21 days to fill', offers: '95.5%', offersSub: '↑ Top performing' },
+        trend: [88, 89, 90, 91, 91, 92, 93, 93, 94, 94, 95, 95],
+        trendLabel: 'Human Resources Headcount',
+        distLabels: ['Talent Acq', 'People Ops', 'Total Rewards', 'L&D', 'HRBP'],
+        distData: [4.5, 3.8, 3.2, 4.0, 4.4],
+        distTitle: 'HR Sub-Team Turnover (%)',
+        distSubtitle: 'Attrition rate across HR specializations'
+      }
+    };
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // Initialize Trend Chart
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    const trendChart = new Chart(trendCtx, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [{
+          label: dataByDept.All.trendLabel,
+          data: dataByDept.All.trend,
+          borderColor: '#0078D4',
+          backgroundColor: 'rgba(0, 120, 212, 0.08)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointBackgroundColor: '#0078D4',
+          pointRadius: 3,
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            padding: 10,
+            backgroundColor: '#1E293B'
+          }
+        },
+        scales: {
+          y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 11 } } },
+          x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+
+    // Initialize Distribution Chart
+    const distCtx = document.getElementById('distChart').getContext('2d');
+    const distChart = new Chart(distCtx, {
+      type: 'bar',
+      data: {
+        labels: dataByDept.All.distLabels,
+        datasets: [{
+          label: 'Attrition Rate (%)',
+          data: dataByDept.All.distData,
+          backgroundColor: '#0078D4',
+          hoverBackgroundColor: '#005A9E',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            padding: 10,
+            backgroundColor: '#1E293B',
+            callbacks: {
+              label: (ctx) => `${ctx.parsed.y}% Attrition`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 16,
+            grid: { color: '#F1F5F9' },
+            ticks: {
+              callback: (val) => `${val}%`,
+              font: { size: 11 }
+            }
+          },
+          x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+
+    // Master function that updates KPIs and both charts dynamically
+    function updateDashboard() {
+      const selectedDept = document.getElementById('deptFilter').value;
+      const deptData = dataByDept[selectedDept];
+
+      // 1. Update KPI Text Elements
+      document.getElementById('kpiHeadcount').innerText = deptData.kpi.headcount;
+      document.getElementById('kpiHeadcountSub').innerText = deptData.kpi.headcountSub;
+
+      document.getElementById('kpiAttrition').innerText = deptData.kpi.attrition;
+      document.getElementById('kpiAttritionSub').innerText = deptData.kpi.attritionSub;
+
+      document.getElementById('kpiReqs').innerText = deptData.kpi.reqs;
+      document.getElementById('kpiReqsSub').innerText = deptData.kpi.reqsSub;
+
+      document.getElementById('kpiOffers').innerText = deptData.kpi.offers;
+      document.getElementById('kpiOffersSub').innerText = deptData.kpi.offersSub;
+
+      // 2. Update Badge & Titles
+      document.getElementById('activeBadge').innerText = selectedDept === 'All' ? 'All Teams' : selectedDept;
+      document.getElementById('distTitle').innerText = deptData.distTitle;
+      document.getElementById('distSubtitle').innerText = deptData.distSubtitle;
+
+      // 3. Update Trend Chart Data & Animate
+      trendChart.data.datasets[0].data = deptData.trend;
+      trendChart.data.datasets[0].label = deptData.trendLabel;
+      trendChart.update();
+
+      // 4. Update Distribution Bar Chart Data & Animate
+      distChart.data.labels = deptData.distLabels;
+      distChart.data.datasets[0].data = deptData.distData;
+      distChart.update();
+    }
+  </script>
+</body>
+</html>
